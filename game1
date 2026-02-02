@@ -1,0 +1,833 @@
+<!doctype html>
+<html lang="en" class="h-full">
+ <head>
+  <meta charset="UTF-8">
+  <meta name="viewport" content="width=device-width, initial-scale=1.0">
+  <title>English Quest - A2 CEFR</title>
+  <script src="https://cdn.tailwindcss.com"></script>
+  <script src="/_sdk/element_sdk.js"></script>
+  <link href="https://fonts.googleapis.com/css2?family=Press+Start+2P&amp;family=Nunito:wght@400;700;900&amp;display=swap" rel="stylesheet">
+  <style>
+    body {
+      box-sizing: border-box;
+    }
+    .pixel-font {
+      font-family: 'Press Start 2P', cursive;
+    }
+    .game-font {
+      font-family: 'Nunito', sans-serif;
+    }
+    
+    @keyframes float {
+      0%, 100% { transform: translateY(0px); }
+      50% { transform: translateY(-10px); }
+    }
+    
+    @keyframes shake {
+      0%, 100% { transform: translateX(0); }
+      25% { transform: translateX(-5px); }
+      75% { transform: translateX(5px); }
+    }
+    
+    @keyframes pulse-glow {
+      0%, 100% { box-shadow: 0 0 20px rgba(255, 200, 50, 0.5); }
+      50% { box-shadow: 0 0 40px rgba(255, 200, 50, 0.8); }
+    }
+    
+    @keyframes attack-right {
+      0% { transform: translateX(0); }
+      50% { transform: translateX(50px); }
+      100% { transform: translateX(0); }
+    }
+    
+    @keyframes attack-left {
+      0% { transform: translateX(0); }
+      50% { transform: translateX(-50px); }
+      100% { transform: translateX(0); }
+    }
+    
+    @keyframes laser-shot {
+      0% { width: 0%; opacity: 1; }
+      100% { width: 100%; opacity: 1; }
+    }
+    
+    @keyframes laser-fade {
+      0% { opacity: 1; }
+      90% { opacity: 1; }
+      100% { opacity: 0; }
+    }
+    
+    @keyframes damage {
+      0%, 100% { opacity: 1; filter: brightness(1); }
+      50% { opacity: 0.5; filter: brightness(2) hue-rotate(180deg); }
+    }
+    
+    @keyframes victory {
+      0% { transform: scale(1) rotate(0deg); }
+      50% { transform: scale(1.2) rotate(5deg); }
+      100% { transform: scale(1) rotate(0deg); }
+    }
+    
+    @keyframes rock-throw {
+      0% { transform: translate(0, 0) rotate(0deg); opacity: 1; }
+      100% { transform: translate(-150px, 80px) rotate(360deg); opacity: 0; }
+    }
+    
+    @keyframes dodge-roll {
+      0% { transform: translateY(0) scaleY(1); }
+      50% { transform: translateY(-40px) scaleY(0.6); }
+      100% { transform: translateY(0) scaleY(1); }
+    }
+    
+    @keyframes particle-burst {
+      0% { transform: translate(0, 0) scale(1); opacity: 1; }
+      100% { transform: translate(var(--tx), var(--ty)) scale(0); opacity: 0; }
+    }
+    
+    @keyframes screen-quake {
+      0%, 100% { transform: translate(0, 0) rotate(0deg); }
+      25% { transform: translate(-8px, -8px) rotate(0.5deg); }
+      50% { transform: translate(8px, 8px) rotate(-0.5deg); }
+      75% { transform: translate(-8px, 8px) rotate(0.5deg); }
+    }
+    
+    @keyframes text-pop {
+      0% { transform: scale(0) translateY(0); opacity: 1; }
+      100% { transform: scale(1) translateY(-60px); opacity: 0; }
+    }
+    
+    @keyframes rainbow-glow {
+      0%, 100% { filter: drop-shadow(0 0 10px #ff0000); }
+      20% { filter: drop-shadow(0 0 10px #ffff00); }
+      40% { filter: drop-shadow(0 0 10px #00ff00); }
+      60% { filter: drop-shadow(0 0 10px #0099ff); }
+      80% { filter: drop-shadow(0 0 10px #ff00ff); }
+    }
+    
+    @keyframes pulse-huge {
+      0%, 100% { transform: scale(1); }
+      50% { transform: scale(1.3); }
+    }
+    
+    @keyframes critical-flash {
+      0% { filter: brightness(1); }
+      50% { filter: brightness(3) saturate(2); }
+      100% { filter: brightness(1); }
+    }
+    
+    .float { animation: float 2s ease-in-out infinite; }
+    .shake { animation: shake 0.3s ease-in-out; }
+    .pulse-glow { animation: pulse-glow 2s ease-in-out infinite; }
+    .attack-right { animation: attack-right 0.4s ease-out; }
+    .attack-left { animation: attack-left 0.4s ease-out; }
+    .damage { animation: damage 0.3s ease-out; }
+    .victory { animation: victory 0.5s ease-out; }
+    .rock-throw { animation: rock-throw 0.6s ease-in; }
+    .dodge-roll { animation: dodge-roll 0.5s ease-out; }
+    .screen-quake { animation: screen-quake 0.4s ease-out; }
+    .rainbow-glow { animation: rainbow-glow 0.6s ease-out; }
+    .critical-flash { animation: critical-flash 0.4s ease-out; }
+    
+    .particle {
+      position: fixed;
+      pointer-events: none;
+      font-size: 24px;
+    }
+    
+    .btn-answer {
+      transition: all 0.2s ease;
+    }
+    .btn-answer:active {
+      transform: scale(0.95);
+    }
+  </style>
+  <style>@view-transition { navigation: auto; }</style>
+  <script src="/_sdk/data_sdk.js" type="text/javascript"></script>
+ </head>
+ <body class="h-full game-font overflow-hidden">
+  <div id="app" class="h-full w-full"></div>
+  <script>
+    const defaultConfig = {
+      game_title: "English Quest - A2 CEFR",
+      primary_color: "#1a1a2e",
+      secondary_color: "#16213e",
+      accent_color: "#e94560",
+      text_color: "#eaeaea",
+      highlight_color: "#ffc947"
+    };
+
+    let config = { ...defaultConfig };
+    
+    const bosses = [
+      { name: "Family Phantom", topic: "family", emoji: "👨‍👩‍👧‍👦", color: "#9b59b6" },
+      { name: "Chore Champion", topic: "chore", emoji: "🧹", color: "#3498db" },
+      { name: "Career Captain", topic: "occupation", emoji: "👔", color: "#e67e22" },
+      { name: "School Specter", topic: "school", emoji: "📚", color: "#2ecc71" }
+    ];
+
+    const questions = {
+      family: [
+        { q: "What relation is your father's wife (not your mother)?", options: ["Stepmother", "Aunt", "Sister", "Cousin"], answer: 0 },
+        { q: "What is a person who is the child of your aunt or uncle?", options: ["Brother", "Nephew", "Cousin", "Niece"], answer: 2 },
+        { q: "What do you call the woman married to your son?", options: ["Daughter", "Sister", "Daughter-in-law", "Niece"], answer: 2 },
+        { q: "Who is your parent's parent?", options: ["Uncle", "Grandparent", "Aunt", "Cousin"], answer: 1 },
+        { q: "What relation is your brother's wife?", options: ["Sister", "Cousin", "Sister-in-law", "Aunt"], answer: 2 },
+        { q: "What is the son of your daughter called?", options: ["Son", "Nephew", "Grandson", "Brother"], answer: 2 },
+        { q: "Who are people born to the same parents?", options: ["Cousins", "Siblings", "Relatives", "Twins"], answer: 1 },
+        { q: "What do you call your wife's mother?", options: ["Aunt", "Mother-in-law", "Sister", "Grandmother"], answer: 1 },
+        { q: "A person with no brothers or sisters is an...", options: ["Only child", "Single", "Alone", "Lonely"], answer: 0 },
+        { q: "What is the woman whose son is married to you?", options: ["Sister", "Aunt", "Mother-in-law", "Grandmother"], answer: 2 },
+        { q: "What do you call your father's sister?", options: ["Uncle", "Aunt", "Cousin", "Grandmother"], answer: 1 },
+        { q: "Who is the child of your brother or sister?", options: ["Cousin", "Nephew or Niece", "Grandchild", "Relative"], answer: 1 }
+      ],
+      chore: [
+        { q: "Which chore means to make clothes clean?", options: ["Ironing", "Washing clothes", "Folding", "Drying"], answer: 1 },
+        { q: "What do you do to clothes with an iron?", options: ["Wash them", "Iron them", "Dry them", "Fold them"], answer: 1 },
+        { q: "Which task means to remove dirt from the floor?", options: ["Cooking", "Sweeping", "Watering", "Setting"], answer: 1 },
+        { q: "What job means to arrange things in order?", options: ["Cooking", "Cleaning", "Organizing", "Washing"], answer: 2 },
+        { q: "Which chore involves preparing food for eating?", options: ["Cooking", "Cleaning", "Washing", "Shopping"], answer: 0 },
+        { q: "What do you do before eating - arrange the table?", options: ["Clear", "Cook", "Set", "Wash"], answer: 2 },
+        { q: "Which task means to plant seeds or grow plants?", options: ["Cooking", "Gardening", "Cleaning", "Ironing"], answer: 1 },
+        { q: "What means to make a bed smooth and neat?", options: ["Clean", "Sweep", "Make", "Arrange"], answer: 2 },
+        { q: "Which job involves removing waste?", options: ["Taking out trash", "Setting table", "Cooking", "Washing"], answer: 0 },
+        { q: "What do you do to dishes after eating?", options: ["Cook", "Wash", "Dry", "Organize"], answer: 1 },
+        { q: "What task involves clearing things away after a meal?", options: ["Setting table", "Clearing dishes", "Cooking", "Organizing"], answer: 1 },
+        { q: "Which chore means to put dirty clothes in water with soap?", options: ["Dry", "Fold", "Iron", "Soak"], answer: 3 }
+      ],
+      occupation: [
+        { q: "Who helps people stay healthy?", options: ["Teacher", "Doctor", "Chef", "Farmer"], answer: 1 },
+        { q: "Who repairs things like pipes and taps?", options: ["Carpenter", "Plumber", "Mechanic", "Electrician"], answer: 1 },
+        { q: "Who works with electricity and lights?", options: ["Plumber", "Carpenter", "Electrician", "Mechanic"], answer: 2 },
+        { q: "Who sells things in a shop?", options: ["Farmer", "Chef", "Shop assistant", "Mechanic"], answer: 2 },
+        { q: "Who takes care of animals?", options: ["Farmer", "Veterinarian", "Gardener", "Chef"], answer: 1 },
+        { q: "Who cuts and fixes wood?", options: ["Plumber", "Carpenter", "Mechanic", "Electrician"], answer: 1 },
+        { q: "Who fixes cars and motors?", options: ["Carpenter", "Mechanic", "Plumber", "Electrician"], answer: 1 },
+        { q: "Who writes for newspapers or online?", options: ["Chef", "Journalist", "Farmer", "Mechanic"], answer: 1 },
+        { q: "Who protects people and the law?", options: ["Farmer", "Police officer", "Chef", "Gardener"], answer: 1 },
+        { q: "Who takes care of plants and gardens?", options: ["Gardener", "Farmer", "Florist", "Chef"], answer: 0 }
+      ],
+      school: [
+        { q: "What is a short test given by teachers?", options: ["Test", "Quiz", "Exam", "Exercise"], answer: 1 },
+        { q: "What do you write with - a thin stick with graphite?", options: ["Pen", "Pencil", "Marker", "Eraser"], answer: 1 },
+        { q: "What is a book used for learning?", options: ["Novel", "Story", "Textbook", "Magazine"], answer: 2 },
+        { q: "What object do teachers use to show information?", options: ["Book", "Desk", "Whiteboard", "Door"], answer: 2 },
+        { q: "What do you keep your schoolwork in?", options: ["Bag", "Notebook", "Desk", "Locker"], answer: 1 },
+        { q: "What is a period of study for a class?", options: ["Break", "Lesson", "Holiday", "Recess"], answer: 1 },
+        { q: "What is the paper work students do at home?", options: ["Classwork", "Homework", "Project", "Test"], answer: 1 },
+        { q: "What is a formal test at the end of a year?", options: ["Quiz", "Lesson", "Exam", "Test"], answer: 2 },
+        { q: "What is a person who teaches?", options: ["Student", "Teacher", "Principal", "Friend"], answer: 1 },
+        { q: "What is a person who learns at school?", options: ["Teacher", "Student", "Principal", "Staff"], answer: 1 },
+        { q: "What is the place where students sit and write?", options: ["Locker", "Bench", "Desk", "Shelf"], answer: 2 }
+      ]
+    };
+
+    let gameState = {
+      screen: 'title',
+      playerHP: 5,
+      maxPlayerHP: 5,
+      bossHP: 20,
+      maxBossHP: 20,
+      currentTopic: null,
+      currentQuestion: null,
+      comboCount: 0,
+      usedQuestions: [],
+      message: '',
+      isAnimating: false,
+      defeatedBosses: [],
+      currentBossIndex: 0,
+      selectedVocabTopic: null
+    };
+
+    function createParticles(x, y, emoji = '✨', count = 8) {
+      const app = document.getElementById('app');
+      for (let i = 0; i < count; i++) {
+        const particle = document.createElement('div');
+        particle.className = 'particle';
+        particle.textContent = emoji;
+        particle.style.left = x + 'px';
+        particle.style.top = y + 'px';
+        app.appendChild(particle);
+        
+        const angle = (i / count) * Math.PI * 2;
+        const distance = 80 + Math.random() * 40;
+        const tx = Math.cos(angle) * distance;
+        const ty = Math.sin(angle) * distance;
+        
+        particle.style.setProperty('--tx', tx + 'px');
+        particle.style.setProperty('--ty', ty + 'px');
+        particle.style.animation = `particle-burst 0.8s ease-out forwards`;
+        
+        setTimeout(() => particle.remove(), 800);
+      }
+    }
+
+    function createDamageText(x, y, text, color = '#ff6b6b') {
+      const damageEl = document.createElement('div');
+      damageEl.style.position = 'fixed';
+      damageEl.style.left = x + 'px';
+      damageEl.style.top = y + 'px';
+      damageEl.style.color = color;
+      damageEl.style.fontSize = '28px';
+      damageEl.style.fontWeight = 'bold';
+      damageEl.style.textShadow = `0 0 10px ${color}, 0 0 20px ${color}`;
+      damageEl.style.pointerEvents = 'none';
+      damageEl.style.zIndex = '9999';
+      damageEl.style.animation = 'text-pop 1.2s ease-out forwards';
+      damageEl.textContent = text;
+      document.getElementById('app').appendChild(damageEl);
+      setTimeout(() => damageEl.remove(), 1200);
+    }
+
+    function screenShake(intensity = 1) {
+      const app = document.getElementById('app');
+      app.classList.add('screen-quake');
+      setTimeout(() => app.classList.remove('screen-quake'), 400);
+    }
+
+    function triggerRainbowGlow() {
+      const boss = document.getElementById('boss-emoji');
+      if (boss) {
+        boss.classList.add('rainbow-glow');
+        setTimeout(() => boss.classList.remove('rainbow-glow'), 600);
+      }
+    }
+
+    function getRandomQuestion(topic) {
+      const available = questions[topic].filter((_, i) => !gameState.usedQuestions.includes(`${topic}-${i}`));
+      if (available.length === 0) {
+        gameState.usedQuestions = gameState.usedQuestions.filter(q => !q.startsWith(topic));
+        return getRandomQuestion(topic);
+      }
+      const randomIndex = Math.floor(Math.random() * available.length);
+      const originalIndex = questions[topic].indexOf(available[randomIndex]);
+      gameState.usedQuestions.push(`${topic}-${originalIndex}`);
+      return { ...available[randomIndex], index: originalIndex };
+    }
+
+    function shuffleAnswers(question) {
+      const shuffled = [...question.options];
+      const correctAnswer = question.options[question.answer];
+      for (let i = shuffled.length - 1; i > 0; i--) {
+        const j = Math.floor(Math.random() * (i + 1));
+        [shuffled[i], shuffled[j]] = [shuffled[j], shuffled[i]];
+      }
+      question.answer = shuffled.indexOf(correctAnswer);
+      question.options = shuffled;
+    }
+
+    function startBattle(bossIndex) {
+      gameState.screen = 'battle';
+      gameState.currentTopic = bosses[bossIndex].topic;
+      gameState.bossHP = 20;
+      gameState.maxBossHP = 20;
+      gameState.comboCount = 0;
+      gameState.currentBossIndex = bossIndex;
+      gameState.message = `${bosses[bossIndex].name} appears! Answer correctly to attack!`;
+      gameState.currentQuestion = getRandomQuestion(bosses[bossIndex].topic);
+      shuffleAnswers(gameState.currentQuestion);
+      render();
+    }
+
+    function handleAnswer(selectedIndex) {
+      if (gameState.isAnimating) return;
+      
+      const correct = selectedIndex === gameState.currentQuestion.answer;
+      gameState.isAnimating = true;
+      
+      if (correct) {
+        gameState.comboCount++;
+        const damage = gameState.comboCount + 1;
+        gameState.bossHP = Math.max(0, gameState.bossHP - damage);
+        gameState.message = `✨ Correct! Combo x${gameState.comboCount}! Deal ${damage} damage!`;
+        
+        render();
+        
+        createParticles(window.innerWidth / 2, window.innerHeight / 2, '✨', 12);
+        screenShake(0.8);
+        triggerRainbowGlow();
+        
+        const laser = document.getElementById('laser');
+        const laserContainer = document.getElementById('laser-container');
+        if (laser && laserContainer) {
+          laser.classList.remove('hidden');
+          const laserHeight = Math.min(20 + (gameState.comboCount * 5), 60);
+          laserContainer.style.height = laserHeight + 'px';
+          laserContainer.style.marginTop = -(laserHeight / 2) + 'px';
+        }
+        
+        const bossEl = document.getElementById('boss-sprite');
+        const bossEmoji = document.getElementById('boss-emoji');
+        if (bossEl) bossEl.classList.add('damage');
+        if (bossEmoji) {
+          bossEmoji.style.fontSize = (1.5 + gameState.comboCount * 0.15) + 'rem';
+          bossEmoji.classList.add('pulse-huge');
+        }
+        
+        const playerEl = document.getElementById('player-sprite');
+        if (playerEl) playerEl.classList.add('attack-right');
+        
+        if (gameState.comboCount % 3 === 0 && gameState.comboCount > 0) {
+          createDamageText(window.innerWidth / 2, window.innerHeight / 4, `🔥 COMBO x${gameState.comboCount}!`, '#ffa500');
+          createParticles(window.innerWidth / 2, window.innerHeight / 4, '🔥', 15);
+        }
+        
+        setTimeout(() => {
+          if (bossEl) bossEl.classList.remove('damage');
+          if (bossEmoji) bossEmoji.classList.remove('pulse-huge');
+          if (laser) laser.classList.add('hidden');
+          
+          createDamageText(window.innerWidth / 2, window.innerHeight / 2, `-${damage} HP`, '#ff6b6b');
+          
+          if (gameState.bossHP <= 0) {
+            gameState.defeatedBosses.push(gameState.currentBossIndex);
+            createParticles(window.innerWidth / 2, window.innerHeight / 2, '💥', 20);
+            createDamageText(window.innerWidth / 2, window.innerHeight / 3, 'DEFEATED!', '#00ff00');
+            if (gameState.defeatedBosses.length >= bosses.length) {
+              gameState.screen = 'victory';
+              gameState.message = '🎉 You defeated all bosses! Champion!';
+            } else {
+              gameState.screen = 'topic';
+              gameState.message = `🏆 ${bosses[gameState.currentBossIndex].name} defeated!`;
+            }
+            gameState.isAnimating = false;
+            render();
+          } else {
+            gameState.currentQuestion = getRandomQuestion(gameState.currentTopic);
+            shuffleAnswers(gameState.currentQuestion);
+            gameState.isAnimating = false;
+            render();
+          }
+        }, 500);
+      } else {
+        gameState.comboCount = 0;
+        const bossAttacks = Math.random() < 0.25;
+        
+        if (bossAttacks) {
+          gameState.playerHP = Math.max(0, gameState.playerHP - 1);
+          gameState.message = `❌ Wrong! Boss attacks! -1 ❤️`;
+          
+          render();
+          
+          createParticles(window.innerWidth / 3, window.innerHeight / 2, '💥', 10);
+          screenShake(1.2);
+          createDamageText(window.innerWidth / 3, window.innerHeight / 3, 'HIT!', '#ff0000');
+          
+          const playerEl = document.getElementById('player-sprite');
+          const rock = document.getElementById('rock');
+          
+          if (rock) {
+            rock.classList.remove('hidden');
+            rock.classList.add('rock-throw');
+          }
+          
+          if (playerEl) {
+            setTimeout(() => {
+              playerEl.classList.add('damage');
+            }, 300);
+          }
+          
+          const bossEl = document.getElementById('boss-sprite');
+          if (bossEl) bossEl.classList.add('attack-left');
+          
+          setTimeout(() => {
+            if (playerEl) playerEl.classList.remove('damage');
+            if (bossEl) bossEl.classList.remove('attack-left');
+            if (rock) {
+              rock.classList.remove('rock-throw');
+              rock.classList.add('hidden');
+            }
+            
+            if (gameState.playerHP <= 0) {
+              gameState.screen = 'gameover';
+              gameState.message = '💔 Game Over! Keep practicing!';
+              createParticles(window.innerWidth / 3, window.innerHeight / 2, '💔', 15);
+            } else {
+              gameState.currentQuestion = getRandomQuestion(gameState.currentTopic);
+              shuffleAnswers(gameState.currentQuestion);
+            }
+            gameState.isAnimating = false;
+            render();
+          }, 500);
+        } else {
+          gameState.message = `❌ Wrong! Boss missed! Dodging...`;
+          
+          render();
+          
+          createDamageText(window.innerWidth / 3, window.innerHeight / 3, 'MISS!', '#ffff00');
+          createParticles(window.innerWidth / 3, window.innerHeight / 2, '💨', 8);
+          
+          const playerEl = document.getElementById('player-sprite');
+          if (playerEl) {
+            playerEl.classList.add('dodge-roll');
+          }
+          
+          const bossEl = document.getElementById('boss-sprite');
+          if (bossEl) bossEl.classList.add('attack-left');
+          
+          setTimeout(() => {
+            if (playerEl) playerEl.classList.remove('dodge-roll');
+            if (bossEl) bossEl.classList.remove('attack-left');
+            
+            gameState.message = `❌ Wrong! Lucky! Boss missed! Combo reset.`;
+            gameState.currentQuestion = getRandomQuestion(gameState.currentTopic);
+            shuffleAnswers(gameState.currentQuestion);
+            gameState.isAnimating = false;
+            render();
+          }, 500);
+        }
+      }
+    }
+
+    function resetGame() {
+      gameState = {
+        screen: 'title',
+        playerHP: 5,
+        maxPlayerHP: 5,
+        bossHP: 20,
+        maxBossHP: 20,
+        currentTopic: null,
+        currentQuestion: null,
+        comboCount: 0,
+        usedQuestions: [],
+        message: '',
+        isAnimating: false,
+        defeatedBosses: [],
+        currentBossIndex: 0,
+        selectedVocabTopic: null
+      };
+      render();
+    }
+
+    function resetHPAndBoss() {
+      gameState.playerHP = gameState.maxPlayerHP;
+      gameState.bossHP = gameState.maxBossHP;
+    }
+
+    function renderHearts(current, max, color = '#e94560') {
+      let hearts = '';
+      for (let i = 0; i < max; i++) {
+        if (i < current) {
+          hearts += `<span style="color: ${color}; text-shadow: 0 0 10px ${color};">❤️</span>`;
+        } else {
+          hearts += `<span style="opacity: 0.3;">🖤</span>`;
+        }
+      }
+      return hearts;
+    }
+
+    function renderHealthBar(current, max, color) {
+      const percentage = (current / max) * 100;
+      return `
+        <div class="w-full bg-gray-800 rounded-full h-4 overflow-hidden border border-gray-600">
+          <div class="h-full transition-all duration-300 rounded-full" style="width: ${percentage}%; background: linear-gradient(90deg, ${color}, ${color}dd);"></div>
+        </div>
+        <div class="text-center text-sm mt-1" style="color: ${config.text_color};">${current}/${max} HP</div>
+      `;
+    }
+
+    function render() {
+      const app = document.getElementById('app');
+      
+      if (gameState.screen === 'title') {
+        app.innerHTML = `
+          <div class="w-full h-full flex flex-col items-center justify-center p-4" style="background: linear-gradient(135deg, ${config.primary_color} 0%, ${config.secondary_color} 100%);">
+            <div class="text-center max-w-md w-full">
+              <div class="text-6xl mb-4 float">⚔️</div>
+              <h1 id="game-title" class="pixel-font text-xl md:text-2xl mb-2" style="color: ${config.highlight_color}; text-shadow: 0 0 20px ${config.highlight_color}50;">${config.game_title}</h1>
+              <p class="text-lg mb-8" style="color: ${config.text_color};">A2 Level English Learning Game</p>
+              
+              <div class="bg-black/30 rounded-2xl p-6 mb-8 backdrop-blur">
+                <h2 class="text-lg font-bold mb-4" style="color: ${config.highlight_color};">📖 How to Play</h2>
+                <ul class="text-left space-y-2 text-sm" style="color: ${config.text_color};">
+                  <li>🎯 Answer English questions to attack</li>
+                  <li>⚡ Correct answers build combo (2→3→4→5...)</li>
+                  <li>❌ Wrong = 25% chance boss hits you</li>
+                  <li>❤️ You have 5 hearts, boss has 20 HP</li>
+                  <li>🏆 Defeat all 4 topic bosses to win!</li>
+                </ul>
+              </div>
+              
+              <button onclick="gameState.screen='topic'; render();" class="w-full py-4 px-8 rounded-xl text-xl font-bold transition-all hover:scale-105 active:scale-95 pulse-glow" style="background: linear-gradient(135deg, ${config.accent_color}, ${config.accent_color}cc); color: white;">
+                ⚡ START GAME
+              </button>
+            </div>
+          </div>
+        `;
+      } else if (gameState.screen === 'topic') {
+        app.innerHTML = `
+          <div class="w-full h-full flex flex-col p-4" style="background: linear-gradient(135deg, ${config.primary_color} 0%, ${config.secondary_color} 100%);">
+            <div class="text-center mb-6">
+              <h2 class="pixel-font text-lg" style="color: ${config.highlight_color};">Choose Your Battle!</h2>
+              ${gameState.message ? `<p class="mt-2 text-green-400 font-bold animate-bounce">${gameState.message}</p>` : ''}
+            </div>
+            
+            <div class="flex-1 flex flex-col justify-center">
+              <div class="grid grid-cols-2 gap-4 max-w-lg mx-auto w-full">
+                ${bosses.map((boss, i) => {
+                  const isDefeated = gameState.defeatedBosses.includes(i);
+                  return `
+                    <button 
+                      onclick="${isDefeated ? '' : `startBattle(${i})`}" 
+                      class="p-4 rounded-xl transition-all ${isDefeated ? 'opacity-50 cursor-not-allowed' : 'hover:scale-105 active:scale-95'}"
+                      style="background: ${isDefeated ? '#333' : boss.color}; border: 3px solid ${isDefeated ? '#555' : boss.color}dd; box-shadow: 0 0 20px ${isDefeated ? 'rgba(0,0,0,0.3)' : boss.color + '55'};"
+                      ${isDefeated ? 'disabled' : ''}
+                    >
+                      <div class="text-4xl mb-2 ${isDefeated ? '' : 'float'}">${isDefeated ? '✅' : boss.emoji}</div>
+                      <div class="font-bold text-white text-sm">${boss.name}</div>
+                      <div class="text-xs text-white/70 capitalize">${boss.topic}</div>
+                      ${isDefeated ? '<div class="text-xs text-green-400 mt-1">Defeated!</div>' : ''}
+                    </button>
+                  `;
+                }).join('')}
+              </div>
+            </div>
+            
+            <div class="mt-6 text-center">
+              <div class="inline-flex items-center gap-2 bg-black/30 rounded-full px-4 py-2">
+                <span style="color: ${config.text_color};">Your HP:</span>
+                <span class="text-lg">${renderHearts(gameState.playerHP, gameState.maxPlayerHP)}</span>
+              </div>
+            </div>
+          </div>
+        `;
+      } else if (gameState.screen === 'battle') {
+        const boss = bosses[gameState.currentBossIndex];
+        app.innerHTML = `
+          <div class="w-full h-full flex flex-col relative overflow-hidden" style="background: linear-gradient(180deg, ${config.primary_color} 0%, ${boss.color}33 50%, ${config.secondary_color} 100%);">
+            <div class="flex-1 p-4 flex flex-col">
+              <div class="text-center mb-4">
+                <div class="text-sm font-bold mb-1" style="color: ${config.highlight_color}; text-shadow: 0 0 10px ${config.highlight_color};">${boss.name}</div>
+                <div class="max-w-xs mx-auto">
+                  ${renderHealthBar(gameState.bossHP, gameState.maxBossHP, boss.color)}
+                </div>
+              </div>
+              
+              <div class="flex-1 flex items-center justify-between px-4 md:px-12 relative">
+                <div id="player-sprite" class="text-center">
+                  <div class="text-5xl md:text-6xl float">🦸</div>
+                  <div class="text-xs mt-2" style="color: ${config.text_color};">You</div>
+                </div>
+                
+                <div id="laser-container" class="absolute top-1/2 left-1/4 right-1/4 transform -translate-y-1/2" style="height: 8px;">
+                  <div id="laser" class="hidden absolute top-0 left-0 right-0 h-full rounded-full" style="background: linear-gradient(90deg, #00ff00, #00ff00 50%, transparent); box-shadow: 0 0 20px #00ff00; animation: laser-shot 0.3s ease-out, laser-fade 0.3s ease-out;"></div>
+                </div>
+                
+                <div id="rock-container" class="absolute top-1/3 right-1/4" style="width: 30px; height: 30px;">
+                  <div id="rock" class="hidden text-2xl" style="position: absolute; width: 100%; height: 100%;">🪨</div>
+                </div>
+                
+                <div id="boss-sprite" class="text-center">
+                  <div id="boss-emoji" class="text-5xl md:text-6xl float" style="animation-delay: 0.5s; filter: drop-shadow(0 0 15px ${boss.color}80);">${boss.emoji}</div>
+                  <div class="text-xs mt-2" style="color: ${config.text_color};">${boss.name}</div>
+                </div>
+              </div>
+              
+              <div class="text-center mt-4">
+                <div class="flex justify-center flex-wrap gap-1 text-lg animate-pulse">
+                  ${renderHearts(gameState.playerHP, gameState.maxPlayerHP)}
+                </div>
+              </div>
+            </div>
+            
+            <div class="bg-black/50 backdrop-blur p-4 rounded-t-3xl flex flex-col max-h-1/2 overflow-hidden">
+              <div class="flex justify-between items-center mb-3 gap-2 flex-shrink-0">
+                <div class="px-3 py-1 rounded-full text-sm font-bold animate-pulse" style="background: ${config.highlight_color}; color: ${config.primary_color}; box-shadow: 0 0 20px ${config.highlight_color}80;">
+                  Combo: x${gameState.comboCount}
+                </div>
+                <div class="text-sm flex-1 text-right" style="color: ${gameState.message.includes('Correct') ? '#4ade80' : gameState.message.includes('Wrong') ? '#f87171' : config.text_color}; font-weight: bold;">
+                  ${gameState.message}
+                </div>
+              </div>
+              
+              <div class="bg-white/10 rounded-xl p-4 mb-4 flex-shrink-0 border-2" style="border-color: ${config.highlight_color}40;">
+                <p class="text-center font-bold" style="color: ${config.text_color};">${gameState.currentQuestion.q}</p>
+              </div>
+              
+              <div class="grid grid-cols-2 gap-3 mb-4 flex-shrink-0">
+                ${gameState.currentQuestion.options.map((opt, i) => `
+                  <button onclick="handleAnswer(${i})" class="btn-answer p-3 rounded-xl font-bold text-sm md:text-base transition-all hover:shadow-lg" style="background: linear-gradient(135deg, ${config.secondary_color}, ${config.primary_color}); color: ${config.text_color}; border: 2px solid ${config.highlight_color}50; box-shadow: 0 0 10px ${config.highlight_color}20;">
+                    ${['A', 'B', 'C', 'D'][i]}. ${opt}
+                  </button>
+                `).join('')}
+              </div>
+            </div>
+          </div>
+        `;
+      } else if (gameState.screen === 'victory') {
+        app.innerHTML = `
+          <div class="w-full h-full flex flex-col items-center justify-center p-4" style="background: linear-gradient(135deg, #1a472a 0%, #2d5a3d 100%);">
+            <div class="text-center max-w-md">
+              <div class="text-7xl mb-4 victory animate-bounce">🏆</div>
+              <h1 class="pixel-font text-2xl mb-4" style="color: ${config.highlight_color}; text-shadow: 0 0 20px #00ff00;">VICTORY!</h1>
+              <p class="text-xl mb-2" style="color: ${config.text_color};">You are an English Master!</p>
+              <p class="mb-8" style="color: ${config.text_color};">All bosses defeated! Amazing work!</p>
+              
+              <div class="grid grid-cols-4 gap-3 mb-8">
+                ${bosses.map(b => `<div class="text-3xl animate-bounce">${b.emoji}✅</div>`).join('')}
+              </div>
+              
+              <div class="space-y-3">
+                <button onclick="resetHPAndBoss(); gameState.screen='vocabulary'; render();" class="w-full py-4 px-8 rounded-xl text-lg font-bold transition-all hover:scale-105 active:scale-95" style="background: linear-gradient(135deg, ${config.highlight_color}, ${config.highlight_color}cc); color: ${config.primary_color}; box-shadow: 0 0 30px ${config.highlight_color}80;">
+                  📚 Review Vocabulary
+                </button>
+                <button onclick="resetGame()" class="w-full py-4 px-8 rounded-xl text-lg font-bold transition-all hover:scale-105 active:scale-95" style="background: ${config.accent_color}; color: white; box-shadow: 0 0 20px ${config.accent_color}80;">
+                  🔄 Play Again
+                </button>
+              </div>
+            </div>
+          </div>
+        `;
+      } else if (gameState.screen === 'gameover') {
+        app.innerHTML = `
+          <div class="w-full h-full flex flex-col items-center justify-center p-4" style="background: linear-gradient(135deg, #4a1a1a 0%, #2d1a1a 100%);">
+            <div class="text-center max-w-md">
+              <div class="text-7xl mb-4 animate-bounce">💔</div>
+              <h1 class="pixel-font text-2xl mb-4" style="color: ${config.accent_color}; text-shadow: 0 0 20px ${config.accent_color};">GAME OVER</h1>
+              <p class="text-xl mb-2" style="color: ${config.text_color};">Don't give up!</p>
+              <p class="mb-4" style="color: ${config.text_color};">Practice makes perfect!</p>
+              
+              <div class="bg-black/30 rounded-xl p-4 mb-8 border-2" style="border-color: ${config.accent_color}40;">
+                <p class="text-sm" style="color: ${config.text_color};">Bosses Defeated: ${gameState.defeatedBosses.length}/4</p>
+                <div class="flex justify-center gap-2 mt-2">
+                  ${bosses.map((b, i) => `<span class="text-2xl ${gameState.defeatedBosses.includes(i) ? 'animate-bounce' : 'opacity-30'}">${b.emoji}</span>`).join('')}
+                </div>
+              </div>
+              
+              <button onclick="resetGame()" class="py-4 px-8 rounded-xl text-xl font-bold transition-all hover:scale-105 active:scale-95" style="background: ${config.accent_color}; color: white; box-shadow: 0 0 20px ${config.accent_color}80;">
+                🔄 Try Again
+              </button>
+            </div>
+          </div>
+        `;
+      } else if (gameState.screen === 'vocabulary') {
+        if (!gameState.selectedVocabTopic) {
+          app.innerHTML = `
+            <div class="w-full h-full flex flex-col p-4" style="background: linear-gradient(135deg, ${config.primary_color} 0%, ${config.secondary_color} 100%);">
+              <div class="text-center mb-6">
+                <h2 class="pixel-font text-lg" style="color: ${config.highlight_color};">📚 Vocabulary Review</h2>
+                <p class="text-sm mt-2" style="color: ${config.text_color};">Choose a topic to review</p>
+              </div>
+              
+              <div class="flex-1 flex flex-col justify-center">
+                <div class="grid grid-cols-2 gap-4 max-w-lg mx-auto w-full">
+                  ${bosses.map((boss, i) => {
+                    return `
+                      <button 
+                        onclick="gameState.selectedVocabTopic='${boss.topic}'; render();" 
+                        class="p-4 rounded-xl transition-all hover:scale-105 active:scale-95 float"
+                        style="background: ${boss.color}; border: 3px solid ${boss.color}dd; box-shadow: 0 0 20px ${boss.color}55;"
+                      >
+                        <div class="text-4xl mb-2 float">${boss.emoji}</div>
+                        <div class="font-bold text-white text-sm">${boss.name}</div>
+                        <div class="text-xs text-white/70">${boss.topic.charAt(0).toUpperCase() + boss.topic.slice(1)}</div>
+                      </button>
+                    `;
+                  }).join('')}
+                </div>
+              </div>
+              
+              <div class="mt-6 text-center">
+                <button onclick="gameState.screen='title'; render();" class="py-3 px-6 rounded-lg font-bold transition-all hover:scale-105 active:scale-95" style="background: ${config.secondary_color}; color: ${config.text_color}; border: 2px solid ${config.highlight_color};">
+                  🏠 Back to Menu
+                </button>
+              </div>
+            </div>
+          `;
+        } else {
+          const vocabList = questions[gameState.selectedVocabTopic];
+          const topicBoss = bosses.find(b => b.topic === gameState.selectedVocabTopic);
+          
+          app.innerHTML = `
+            <div class="w-full h-full flex flex-col p-4 overflow-hidden" style="background: linear-gradient(135deg, ${config.primary_color} 0%, ${config.secondary_color} 100%);">
+              <div class="text-center mb-4 flex-shrink-0">
+                <div class="text-3xl mb-2 float">${topicBoss.emoji}</div>
+                <h2 class="pixel-font text-lg" style="color: ${config.highlight_color}; text-shadow: 0 0 15px ${topicBoss.color};">📚 ${topicBoss.name} Vocabulary</h2>
+                <p class="text-xs mt-1" style="color: ${config.text_color};">${vocabList.length} words</p>
+              </div>
+              
+              <div class="flex-1 overflow-y-auto mb-4">
+                <div class="space-y-3 max-w-2xl mx-auto">
+                  ${vocabList.map((item, idx) => `
+                    <div class="bg-black/30 rounded-xl p-4 border-l-4 hover:scale-105 transition-all" style="border-left-color: ${topicBoss.color}; box-shadow: 0 0 15px ${topicBoss.color}30;">
+                      <div class="flex items-start justify-between gap-3">
+                        <div class="flex-1">
+                          <p class="font-bold text-sm" style="color: ${config.highlight_color};">${item.q}</p>
+                          <p class="text-xs mt-2 text-green-400">✓ ${item.options[item.answer]}</p>
+                        </div>
+                        <div class="text-sm px-2 py-1 rounded font-bold" style="background: ${topicBoss.color}; color: white; box-shadow: 0 0 10px ${topicBoss.color}80;">
+                          ${idx + 1}
+                        </div>
+                      </div>
+                    </div>
+                  `).join('')}
+                </div>
+              </div>
+              
+              <div class="flex gap-3 justify-center flex-shrink-0">
+                <button onclick="gameState.selectedVocabTopic=null; render();" class="py-3 px-6 rounded-lg font-bold transition-all hover:scale-105 active:scale-95" style="background: ${config.secondary_color}; color: ${config.text_color}; border: 2px solid ${config.highlight_color};">
+                  ← Back to Topics
+                </button>
+                <button onclick="gameState.screen='title'; gameState.bossHP = gameState.maxBossHP; gameState.playerHP = gameState.maxPlayerHP; render();" class="py-3 px-6 rounded-lg font-bold transition-all hover:scale-105 active:scale-95" style="background: ${config.accent_color}; color: white;">
+                  🏠 Home
+                </button>
+              </div>
+            </div>
+          `;
+        }
+      }
+    }
+
+    async function onConfigChange(newConfig) {
+      config = { ...defaultConfig, ...newConfig };
+      render();
+    }
+
+    function mapToCapabilities(cfg) {
+      return {
+        recolorables: [
+          {
+            get: () => cfg.primary_color || defaultConfig.primary_color,
+            set: (v) => { cfg.primary_color = v; window.elementSdk.setConfig({ primary_color: v }); }
+          },
+          {
+            get: () => cfg.secondary_color || defaultConfig.secondary_color,
+            set: (v) => { cfg.secondary_color = v; window.elementSdk.setConfig({ secondary_color: v }); }
+          },
+          {
+            get: () => cfg.text_color || defaultConfig.text_color,
+            set: (v) => { cfg.text_color = v; window.elementSdk.setConfig({ text_color: v }); }
+          },
+          {
+            get: () => cfg.accent_color || defaultConfig.accent_color,
+            set: (v) => { cfg.accent_color = v; window.elementSdk.setConfig({ accent_color: v }); }
+          },
+          {
+            get: () => cfg.highlight_color || defaultConfig.highlight_color,
+            set: (v) => { cfg.highlight_color = v; window.elementSdk.setConfig({ highlight_color: v }); }
+          }
+        ],
+        borderables: [],
+        fontEditable: undefined,
+        fontSizeable: undefined
+      };
+    }
+
+    function mapToEditPanelValues(cfg) {
+      return new Map([
+        ["game_title", cfg.game_title || defaultConfig.game_title]
+      ]);
+    }
+
+    if (window.elementSdk) {
+      window.elementSdk.init({
+        defaultConfig,
+        onConfigChange,
+        mapToCapabilities,
+        mapToEditPanelValues
+      });
+    }
+    
+    render();
+  </script>
+ <script>(function(){function c(){var b=a.contentDocument||a.contentWindow.document;if(b){var d=b.createElement('script');d.innerHTML="window.__CF$cv$params={r:'9c563c24d2427337',t:'MTc2OTY2MzU1MC4wMDAwMDA='};var a=document.createElement('script');a.nonce='';a.src='/cdn-cgi/challenge-platform/scripts/jsd/main.js';document.getElementsByTagName('head')[0].appendChild(a);";b.getElementsByTagName('head')[0].appendChild(d)}}if(document.body){var a=document.createElement('iframe');a.height=1;a.width=1;a.style.position='absolute';a.style.top=0;a.style.left=0;a.style.border='none';a.style.visibility='hidden';document.body.appendChild(a);if('loading'!==document.readyState)c();else if(window.addEventListener)document.addEventListener('DOMContentLoaded',c);else{var e=document.onreadystatechange||function(){};document.onreadystatechange=function(b){e(b);'loading'!==document.readyState&&(document.onreadystatechange=e,c())}}}})();</script></body>
+</html>
