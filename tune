@@ -1,0 +1,811 @@
+<!doctype html>
+<html lang="en" class="h-full">
+ <head>
+  <meta charset="UTF-8">
+  <meta name="viewport" content="width=device-width, initial-scale=1.0">
+  <title>C2 Mastery Vocabulary Quiz</title>
+  <script src="https://cdn.tailwindcss.com"></script>
+  <script src="/_sdk/element_sdk.js"></script>
+  <link rel="preconnect" href="https://fonts.googleapis.com">
+  <link rel="preconnect" href="https://fonts.gstatic.com" crossorigin>
+  <link href="https://fonts.googleapis.com/css2?family=Poppins:wght@300;400;600;700&amp;display=swap" rel="stylesheet">
+  <style>
+    html, body {
+      height: 100%;
+    }
+    body {
+      box-sizing: border-box;
+      margin: 0;
+      padding: 0;
+    }
+    * {
+      font-family: 'Poppins', sans-serif;
+    }
+    @keyframes pulse-glow {
+      0%, 100% { box-shadow: 0 0 20px rgba(168, 85, 247, 0.3); }
+      50% { box-shadow: 0 0 40px rgba(168, 85, 247, 0.6); }
+    }
+    @keyframes slide-up {
+      from { opacity: 0; transform: translateY(30px); }
+      to { opacity: 1; transform: translateY(0); }
+    }
+    .pulse-glow { animation: pulse-glow 2s ease-in-out infinite; }
+    .slide-up { animation: slide-up 0.5s ease-out forwards; }
+    .progress-fill { transition: width 0.3s ease-out; }
+    .option-btn {
+      transition: all 0.2s ease;
+      cursor: pointer;
+    }
+    .option-btn:hover:not(.disabled) {
+      transform: translateY(-4px);
+      box-shadow: 0 8px 20px rgba(168, 85, 247, 0.3);
+    }
+    .option-btn.correct {
+      background: linear-gradient(135deg, #10b981, #34d399);
+      border-color: #10b981;
+    }
+    .option-btn.incorrect {
+      background: linear-gradient(135deg, #ef4444, #f87171);
+      border-color: #ef4444;
+    }
+    .option-btn.disabled {
+      cursor: not-allowed;
+      opacity: 0.7;
+    }
+    @keyframes fall {
+      to { transform: translateY(100vh) rotate(360deg); opacity: 0; }
+    }
+    .confetti-piece {
+      animation: fall 2s ease-in forwards;
+      position: fixed;
+      pointer-events: none;
+    }
+    @keyframes pop-up {
+      from {
+        opacity: 0;
+        transform: translateY(100px) scale(0.8);
+      }
+      to {
+        opacity: 1;
+        transform: translateY(0) scale(1);
+      }
+    }
+    @keyframes shake {
+      0%, 100% { transform: translateY(0) scale(1); }
+      25% { transform: translateY(-10px) scale(1.02); }
+      50% { transform: translateY(0) scale(1); }
+      75% { transform: translateY(-5px) scale(1.01); }
+    }
+    .answer-popup {
+      animation: pop-up 0.6s cubic-bezier(0.34, 1.56, 0.64, 1) forwards;
+      border: 3px solid #ef4444;
+      box-shadow: 0 20px 60px rgba(239, 68, 68, 0.4);
+    }
+    .answer-popup.shake {
+      animation: shake 0.5s ease-in-out;
+    }
+    .category-badge {
+      display: inline-block;
+      padding: 4px 12px;
+      border-radius: 20px;
+      font-size: 12px;
+      font-weight: 600;
+      margin-bottom: 12px;
+    }
+    .category-family { background: rgba(236, 72, 153, 0.2); color: #ec4899; }
+    .category-school { background: rgba(59, 130, 246, 0.2); color: #3b82f6; }
+    .category-chores { background: rgba(168, 85, 247, 0.2); color: #a855f7; }
+    .category-occupation { background: rgba(34, 197, 94, 0.2); color: #22c55e; }
+    .question-image {
+      font-size: 80px;
+      line-height: 1;
+      margin: 16px 0;
+    }
+    .question-text-container {
+      max-height: 250px;
+      overflow-y: auto;
+    }
+    .explanation-container {
+      max-height: 400px;
+      overflow-y: auto;
+      padding: 14px;
+      background: rgba(255,255,255,0.05);
+      border-radius: 8px;
+      margin-top: 10px;
+      border-left: 4px solid #a855f7;
+    }
+    #app-wrapper {
+      width: 100%;
+      height: 100%;
+      overflow: auto;
+    }
+  </style>
+  <style>@view-transition { navigation: auto; }</style>
+  <script src="/_sdk/data_sdk.js" type="text/javascript"></script>
+ </head>
+ <body class="h-full m-0 overflow-auto">
+  <div id="app-wrapper" class="w-full h-full flex items-center justify-center p-4" style="background: linear-gradient(135deg, #0f172a 0%, #1e1b4b 50%, #2d1b69 100%);">
+   <div id="app" class="w-full flex items-center justify-center"><!-- Start Screen -->
+    <div id="start-screen" class="text-center max-w-lg w-full slide-up">
+     <div class="text-7xl mb-6">
+      🎓
+     </div>
+     <h1 id="main-title" class="text-4xl md:text-5xl font-bold text-black mb-4">C2 Mastery Quiz</h1>
+     <p class="text-black text-lg mb-2">Advanced Proficiency Assessment</p>
+     <p class="text-black text-sm mb-8">Family • School • Chores • Occupation</p><button id="start-btn" class="pulse-glow text-xl font-semibold px-10 py-4 rounded-full transition-all hover:scale-105 cursor-pointer" style="background: linear-gradient(135deg, #a855f7, #d946ef); color: white; border: none; z-index: 10; position: relative;"> Commence Assessment 🚀 </button>
+     <div class="mt-8 flex justify-center gap-4 text-black text-sm"><span>⏱️ 30 min</span> <span>•</span> <span>📚 20 inquiries</span> <span>•</span> <span>🎓 4 disciplines</span>
+     </div>
+    </div><!-- Quiz Screen -->
+    <div id="quiz-screen" class="hidden max-w-4xl w-full">
+     <div class="rounded-3xl p-6 md:p-8" style="background: rgba(255,255,255,0.1); backdrop-filter: blur(10px); border: 1px solid rgba(255,255,255,0.2);"><!-- Progress Bar -->
+      <div class="mb-8">
+       <div class="flex justify-between text-black text-sm mb-2"><span>Question <span id="current-q">1</span> of 20</span> <span id="progress-percent">0%</span>
+       </div>
+       <div class="h-3 rounded-full overflow-hidden" style="background: rgba(255,255,255,0.2);">
+        <div id="progress-bar" class="h-full rounded-full progress-fill" style="width: 0%; background: linear-gradient(90deg, #a855f7, #ec4899);"></div>
+       </div>
+      </div><!-- Question -->
+      <div id="question-container" class="slide-up">
+       <div id="category-badge" class="category-badge"></div>
+       <p class="text-black text-sm font-semibold mb-2">Question <span id="q-number">1</span></p>
+       <div id="question-image" class="question-image text-center"></div>
+       <div class="question-text-container">
+        <h2 id="question-text" class="text-lg md:text-xl font-bold text-black mb-2"></h2>
+       </div>
+       <div id="options-container" class="space-y-3"></div>
+       <div id="feedback-container" class="mt-6">
+        <div id="feedback" class="hidden text-center font-semibold rounded-lg p-4" style="background: rgba(239, 68, 68, 0.2);">
+         <div id="feedback-text" class="text-lg text-red-500 mb-4"></div><button id="read-btn" class="px-6 py-3 rounded-full font-semibold text-white transition-all hover:scale-105" style="background: linear-gradient(135deg, #ef4444, #f87171);"> 📖 Detailed Analysis </button>
+        </div>
+        <div class="explanation-container answer-popup" id="explanation-box" style="display:none;">
+         <p id="explanation-text" class="text-black text-sm leading-relaxed whitespace-pre-wrap"></p><button id="continue-btn" class="w-full mt-4 px-4 py-2 bg-purple-600 hover:bg-purple-700 text-white rounded-lg font-semibold transition-all"> Proceed to Next Question → </button>
+        </div>
+       </div>
+      </div>
+     </div>
+    </div><!-- Results Screen -->
+    <div id="results-screen" class="hidden w-full">
+     <div class="max-w-2xl w-full text-center mx-auto rounded-3xl p-8 md:p-10" style="background: rgba(255,255,255,0.1); backdrop-filter: blur(10px); border: 1px solid rgba(255,255,255,0.2);">
+      <div class="text-6xl mb-4">
+       🏆
+      </div>
+      <p id="results-subtitle" class="text-black text-lg mb-2">Assessment Concluded</p>
+      <h2 class="text-3xl md:text-4xl font-bold text-black mb-2">Proficiency Evaluation</h2>
+      <div class="rounded-2xl p-6 mb-6" style="background: rgba(168, 85, 247, 0.2);">
+       <p class="text-5xl font-bold text-black mb-2"><span id="score-value">0</span>/20</p>
+       <p id="score-percentage" class="text-2xl text-black font-semibold"></p>
+       <p id="score-message" class="text-black mt-3 text-lg"></p>
+      </div><!-- Category Breakdown -->
+      <div class="rounded-2xl p-6 mb-6" style="background: rgba(255,255,255,0.1);">
+       <h3 class="text-black font-semibold mb-4 text-lg">Disciplinary Breakdown</h3>
+       <div class="grid grid-cols-2 gap-3" id="category-scores"></div>
+      </div><!-- Detailed Results -->
+      <div id="results-breakdown" class="rounded-2xl p-6" style="background: rgba(96, 165, 250, 0.2); text-left; max-height: 600px; overflow-y: auto;">
+       <h3 class="text-black font-semibold mb-4 text-lg">Comprehensive Analysis</h3>
+       <div id="results-list" class="space-y-4"></div>
+      </div>
+     </div>
+    </div>
+    <div id="retake-button-container" class="fixed bottom-4 right-4 hidden" style="z-index: 50;"><button class="font-semibold px-8 py-3 rounded-full transition-all hover:scale-105 shadow-lg" style="background: linear-gradient(135deg, #a855f7, #d946ef); color: white;"> Retake Assessment 🚀 </button>
+    </div>
+   </div>
+  </div>
+  <script>
+    const defaultConfig = {
+      quiz_title: "C2 Mastery Quiz",
+      start_button_text: "Commence Assessment 🚀",
+      results_subtitle: "Assessment Concluded",
+      background_color: "#e0f2fe",
+      surface_color: "rgba(255,255,255,0.1)",
+      text_color: "#000000",
+      primary_action_color: "#a855f7",
+      secondary_action_color: "#d946ef",
+      font_family: "Poppins",
+      font_size: 16
+    };
+
+    const quizData = [
+      {
+        category: "Family",
+        categoryEmoji: "👨‍👩‍👧‍👦",
+        question: "A person who is related to you by blood or marriage is your...",
+        image: "👨‍👩‍👧‍👦",
+        explanation: "CORRECT ANSWER: KINSMAN/KINSWOMAN or RELATIVE\n\nA kinsman is a male relation or relative, while a kinswoman is a female relation. These terms denote blood relations or in-laws connected through family ties.",
+        options: [
+          { text: "Kinsman/Kinswoman", correct: true },
+          { text: "Acquaintance", correct: false },
+          { text: "Colleague", correct: false },
+          { text: "Associate", correct: false }
+        ]
+      },
+      {
+        category: "Family",
+        categoryEmoji: "👨‍👩‍👧‍👦",
+        question: "The collective group of all your blood relatives across generations is called your...",
+        image: "🌳",
+        explanation: "CORRECT ANSWER: LINEAGE or PEDIGREE\n\nLineage refers to direct descent from an ancestor or genealogical line. Pedigree denotes the record of one's ancestors or family descent, establishing familial relationships across generations.",
+        options: [
+          { text: "Lineage/Pedigree", correct: true },
+          { text: "Neighborhood", correct: false },
+          { text: "Community", correct: false },
+          { text: "Society", correct: false }
+        ]
+      },
+      {
+        category: "Family",
+        categoryEmoji: "👵",
+        question: "The mother of your parent is called your...",
+        image: "👵",
+        explanation: "CORRECT ANSWER: GRANDMOTHER or GRANDPARENT\n\nA grandmother is the female parent of one's mother or father. The term establishes a generational relationship spanning two generations from the child.",
+        options: [
+          { text: "Grandmother", correct: true },
+          { text: "Aunt", correct: false },
+          { text: "Mother-in-law", correct: false },
+          { text: "Matriarch", correct: false }
+        ]
+      },
+      {
+        category: "Family",
+        categoryEmoji: "👧",
+        question: "The child of your brother or sister is called your...",
+        image: "👧",
+        explanation: "CORRECT ANSWER: NIECE or NEPHEW\n\nA niece is the daughter of one's sibling, while a nephew is the son of one's sibling. These terms establish the relationship between aunts/uncles and their siblings' children.",
+        options: [
+          { text: "Niece/Nephew", correct: true },
+          { text: "Cousin", correct: false },
+          { text: "Grandchild", correct: false },
+          { text: "Offspring", correct: false }
+        ]
+      },
+      {
+        category: "Family",
+        categoryEmoji: "💍",
+        question: "A woman whose spouse has died and has not remarried is called a...",
+        image: "💔",
+        explanation: "CORRECT ANSWER: WIDOW\n\nA widow is a woman whose husband has died and who remains unmarried. The counterpart term for a man whose wife has died is 'widower,' denoting marital status change through death.",
+        options: [
+          { text: "Widow", correct: true },
+          { text: "Divorcée", correct: false },
+          { text: "Spinster", correct: false },
+          { text: "Maiden", correct: false }
+        ]
+      },
+      {
+        category: "School",
+        categoryEmoji: "🎓",
+        question: "The period of systematic instruction and training in an educational institution is termed...",
+        image: "📚",
+        explanation: "CORRECT ANSWER: TUTELAGE or PEDAGOGY\n\nTutelage denotes instruction provided by a tutor or educational guidance. Pedagogy refers to the method and practice of teaching, encompassing instructional principles and educational methodology.",
+        options: [
+          { text: "Tutelage/Pedagogy", correct: true },
+          { text: "Recreation", correct: false },
+          { text: "Entertainment", correct: false },
+          { text: "Leisure", correct: false }
+        ]
+      },
+      {
+        category: "School",
+        categoryEmoji: "📋",
+        question: "The formal written assessment of a student's academic performance is a...",
+        image: "📋",
+        explanation: "CORRECT ANSWER: TRANSCRIPT or REPORT CARD\n\nA transcript is an official document detailing a student's academic record, grades, and course completion. It serves as formal documentation of educational attainment and performance.",
+        options: [
+          { text: "Transcript", correct: true },
+          { text: "Portfolio", correct: false },
+          { text: "Catalog", correct: false },
+          { text: "Syllabus", correct: false }
+        ]
+      },
+      {
+        category: "School",
+        categoryEmoji: "📖",
+        question: "A person engaged in advanced study and research within a university is a...",
+        image: "🎓",
+        explanation: "CORRECT ANSWER: SCHOLAR or ACADEMIC\n\nA scholar is a person of learning who pursues intellectual inquiry and advanced study. An academic engages in scholarly research and education within institutional settings.",
+        options: [
+          { text: "Scholar/Academic", correct: true },
+          { text: "Clerk", correct: false },
+          { text: "Craftsman", correct: false },
+          { text: "Merchant", correct: false }
+        ]
+      },
+      {
+        category: "School",
+        categoryEmoji: "🏫",
+        question: "The principal academic officer at a university who oversees faculty and curriculum is the...",
+        image: "👨‍🎓",
+        explanation: "CORRECT ANSWER: DEAN\n\nA dean is the senior administrative officer of a college or university faculty, overseeing academic standards, curriculum development, and faculty affairs within their jurisdiction.",
+        options: [
+          { text: "Dean", correct: true },
+          { text: "Provost", correct: false },
+          { text: "Chancellor", correct: false },
+          { text: "Registrar", correct: false }
+        ]
+      },
+      {
+        category: "School",
+        categoryEmoji: "✏️",
+        question: "The comprehensive outline of course content and educational objectives is called a...",
+        image: "📝",
+        explanation: "CORRECT ANSWER: SYLLABUS or CURRICULUM\n\nA syllabus outlines course objectives, topics, readings, and assessment methods. Curriculum encompasses the overall body of courses and educational content offered by an institution.",
+        options: [
+          { text: "Syllabus/Curriculum", correct: true },
+          { text: "Agenda", correct: false },
+          { text: "Schedule", correct: false },
+          { text: "Itinerary", correct: false }
+        ]
+      },
+      {
+        category: "Chores",
+        categoryEmoji: "🧹",
+        question: "The action of removing dust and particles from furniture and surfaces is called...",
+        image: "🧺",
+        explanation: "CORRECT ANSWER: DUSTING\n\nDusting is a household chore involving the removal of accumulated dust from furniture, shelves, and surfaces using a cloth or duster.",
+        options: [
+          { text: "Dusting", correct: true },
+          { text: "Sweeping", correct: false },
+          { text: "Wiping", correct: false },
+          { text: "Polishing", correct: false }
+        ]
+      },
+      {
+        category: "Chores",
+        categoryEmoji: "🧼",
+        question: "The process of cleansing dishes and kitchenware using hot water and detergent is...",
+        image: "🍽️",
+        explanation: "CORRECT ANSWER: DISHWASHING or WASHING UP\n\nDishwashing is the chore of cleaning dishes, utensils, and cooking equipment. It involves hot water, detergent, and thorough rinsing to remove food residue.",
+        options: [
+          { text: "Dishwashing", correct: true },
+          { text: "Rinsing", correct: false },
+          { text: "Scrubbing", correct: false },
+          { text: "Soaking", correct: false }
+        ]
+      },
+      {
+        category: "Chores",
+        categoryEmoji: "👕",
+        question: "The process of applying heat to damp fabric to remove wrinkles is called...",
+        image: "👔",
+        explanation: "CORRECT ANSWER: IRONING\n\nIroning is a household chore where heat and pressure from an iron smooth out wrinkles in damp or slightly wet fabric, leaving garments neat and pressed.",
+        options: [
+          { text: "Ironing", correct: true },
+          { text: "Pressing", correct: false },
+          { text: "Folding", correct: false },
+          { text: "Steaming", correct: false }
+        ]
+      },
+      {
+        category: "Chores",
+        categoryEmoji: "🧽",
+        question: "The action of using a mop and cleaning solution to wash floors thoroughly is...",
+        image: "🧽",
+        explanation: "CORRECT ANSWER: MOPPING\n\nMopping involves using a mop with water and cleaning solution to thoroughly cleanse floors, removing dirt and grime.",
+        options: [
+          { text: "Mopping", correct: true },
+          { text: "Sweeping", correct: false },
+          { text: "Scrubbing", correct: false },
+          { text: "Waxing", correct: false }
+        ]
+      },
+      {
+        category: "Chores",
+        categoryEmoji: "🛏️",
+        question: "The chore of arranging and organizing bedding neatly on a mattress is...",
+        image: "🛏️",
+        explanation: "CORRECT ANSWER: MAKING THE BED or BED-MAKING\n\nMaking the bed involves arranging sheets, blankets, and pillows neatly to present an orderly appearance. This daily chore promotes comfort and cleanliness.",
+        options: [
+          { text: "Making the Bed", correct: true },
+          { text: "Laundering", correct: false },
+          { text: "Vacuuming", correct: false },
+          { text: "Tidying", correct: false }
+        ]
+      },
+      {
+        category: "Occupation",
+        categoryEmoji: "⚕️",
+        question: "A medical professional specializing in diagnosing and treating mental health disorders is a...",
+        image: "🧠",
+        explanation: "CORRECT ANSWER: PSYCHIATRIST\n\nA psychiatrist is a physician with specialized training in mental health who diagnoses psychiatric conditions and prescribes medication for psychological disorders.",
+        options: [
+          { text: "Psychiatrist", correct: true },
+          { text: "Psychologist", correct: false },
+          { text: "Therapist", correct: false },
+          { text: "Counselor", correct: false }
+        ]
+      },
+      {
+        category: "Occupation",
+        categoryEmoji: "⚖️",
+        question: "A legal professional who argues cases before courts and represents clients in litigation is a...",
+        image: "⚖️",
+        explanation: "CORRECT ANSWER: BARRISTER or TRIAL LAWYER\n\nA barrister is a lawyer who specializes in courtroom advocacy and trial work, presenting cases before judges. In some jurisdictions, barristers have exclusive rights to court appearance.",
+        options: [
+          { text: "Barrister", correct: true },
+          { text: "Solicitor", correct: false },
+          { text: "Notary", correct: false },
+          { text: "Paralegal", correct: false }
+        ]
+      },
+      {
+        category: "Occupation",
+        categoryEmoji: "🏗️",
+        question: "A professional who designs buildings and supervises construction projects is an...",
+        image: "🏗️",
+        explanation: "CORRECT ANSWER: ARCHITECT\n\nAn architect designs buildings and structures, combining aesthetic vision with engineering principles. They oversee construction and ensure adherence to design specifications.",
+        options: [
+          { text: "Architect", correct: true },
+          { text: "Contractor", correct: false },
+          { text: "Engineer", correct: false },
+          { text: "Surveyor", correct: false }
+        ]
+      },
+      {
+        category: "Occupation",
+        categoryEmoji: "🔍",
+        question: "A professional who investigates crimes and gathers evidence for law enforcement is a...",
+        image: "🔍",
+        explanation: "CORRECT ANSWER: DETECTIVE or INVESTIGATOR\n\nA detective is a law enforcement professional who investigates crimes, gathers evidence, and conducts inquiries to establish facts and apprehend perpetrators.",
+        options: [
+          { text: "Detective", correct: true },
+          { text: "Officer", correct: false },
+          { text: "Constable", correct: false },
+          { text: "Marshal", correct: false }
+        ]
+      },
+      {
+        category: "Occupation",
+        categoryEmoji: "🔬",
+        question: "A scientist who studies living organisms and biological processes is a...",
+        image: "🧬",
+        explanation: "CORRECT ANSWER: BIOLOGIST\n\nA biologist is a scientist who studies living organisms, cellular processes, genetics, and ecological systems. The discipline encompasses molecular, cellular, and organismal biology.",
+        options: [
+          { text: "Biologist", correct: true },
+          { text: "Chemist", correct: false },
+          { text: "Physicist", correct: false },
+          { text: "Geologist", correct: false }
+        ]
+      }
+    ];
+
+    let currentQuestion = 0;
+    let score = 0;
+    let answered = false;
+    let results = [];
+    let categoryScores = { Family: 0, School: 0, Chores: 0, Occupation: 0 };
+    let categoryCounts = { Family: 0, School: 0, Chores: 0, Occupation: 0 };
+
+    quizData.forEach(q => {
+      categoryCounts[q.category]++;
+    });
+
+    // Event listeners for buttons
+    document.getElementById('start-btn').addEventListener('click', startQuiz);
+    document.getElementById('read-btn').addEventListener('click', showExplanation);
+    document.getElementById('continue-btn').addEventListener('click', nextQuestion);
+    document.querySelector('#retake-button-container button').addEventListener('click', restartQuiz);
+
+    function startQuiz() {
+      document.getElementById('start-screen').classList.add('hidden');
+      document.getElementById('quiz-screen').classList.remove('hidden');
+      document.getElementById('retake-button-container').classList.add('hidden');
+      currentQuestion = 0;
+      score = 0;
+      answered = false;
+      results = [];
+      categoryScores = { Family: 0, School: 0, Chores: 0, Occupation: 0 };
+      showQuestion();
+    }
+
+    function showQuestion() {
+      answered = false;
+      const q = quizData[currentQuestion];
+      document.getElementById('question-image').textContent = q.image;
+      document.getElementById('question-text').textContent = q.question;
+      document.getElementById('current-q').textContent = currentQuestion + 1;
+      document.getElementById('q-number').textContent = currentQuestion + 1;
+      document.getElementById('feedback').classList.add('hidden');
+      document.getElementById('explanation-box').style.display = 'none';
+
+      const badgeEl = document.getElementById('category-badge');
+      badgeEl.className = `category-badge category-${q.category.toLowerCase()}`;
+      badgeEl.textContent = `${q.categoryEmoji} ${q.category}`;
+      
+      const progress = ((currentQuestion) / quizData.length) * 100;
+      document.getElementById('progress-bar').style.width = progress + '%';
+      document.getElementById('progress-percent').textContent = Math.round(progress) + '%';
+
+      const optionsContainer = document.getElementById('options-container');
+      optionsContainer.innerHTML = '';
+
+      // Shuffle options
+      const shuffledOptions = [...q.options].sort(() => Math.random() - 0.5);
+
+      shuffledOptions.forEach((option) => {
+        const button = document.createElement('button');
+        button.className = 'option-btn w-full text-left p-4 rounded-xl text-black font-semibold border-2 transition-all';
+        button.style.background = 'rgba(255,255,255,0.1)';
+        button.style.borderColor = '#000000';
+        button.innerHTML = option.text;
+        button.onclick = () => selectOption(option.text, option.correct, q.category, q.explanation);
+        optionsContainer.appendChild(button);
+      });
+
+      const container = document.getElementById('question-container');
+      container.classList.remove('slide-up');
+      void container.offsetWidth;
+      container.classList.add('slide-up');
+    }
+
+    function selectOption(selectedText, isCorrect, category, explanation) {
+      if (answered) return;
+      answered = true;
+
+      const buttons = document.querySelectorAll('.option-btn');
+      const q = quizData[currentQuestion];
+      
+      buttons.forEach((btn) => {
+        btn.classList.add('disabled');
+        const optionText = btn.textContent.trim();
+        const matchingOption = q.options.find(o => o.text === optionText);
+        if (matchingOption && matchingOption.correct) {
+          btn.classList.add('correct');
+        } else if (optionText === selectedText && !isCorrect) {
+          btn.classList.add('incorrect');
+        }
+      });
+
+      const feedback = document.getElementById('feedback');
+      const feedbackText = document.getElementById('feedback-text');
+      const explanationBox = document.getElementById('explanation-box');
+      const explanationText = document.getElementById('explanation-text');
+
+      if (isCorrect) {
+        score++;
+        categoryScores[category]++;
+        feedbackText.textContent = '✅ Correct!';
+        feedback.style.background = 'rgba(16, 185, 129, 0.2)';
+        feedbackText.style.color = '#10b981';
+        
+        const readBtn = document.getElementById('read-btn');
+        readBtn.style.display = 'none';
+        feedback.classList.remove('hidden');
+        
+        explanationText.textContent = explanation;
+        explanationBox.style.display = 'block';
+        explanationBox.classList.add('shake');
+        
+        results.push({
+          question: q.question,
+          category: q.category,
+          userAnswer: selectedText,
+          correctAnswer: q.options.find(o => o.correct).text,
+          isCorrect: isCorrect,
+          explanation: explanation
+        });
+      } else {
+        feedbackText.textContent = '❌ Incorrect!';
+        feedback.style.background = 'rgba(239, 68, 68, 0.2)';
+        feedbackText.style.color = '#ef4444';
+        
+        const readBtn = document.getElementById('read-btn');
+        readBtn.style.display = 'inline-block';
+        feedback.classList.remove('hidden');
+        
+        explanationBox.style.display = 'none';
+        explanationText.textContent = explanation;
+        
+        results.push({
+          question: q.question,
+          category: q.category,
+          userAnswer: selectedText,
+          correctAnswer: q.options.find(o => o.correct).text,
+          isCorrect: isCorrect,
+          explanation: explanation
+        });
+      }
+    }
+
+    function showExplanation() {
+      const explanationBox = document.getElementById('explanation-box');
+      explanationBox.style.display = 'block';
+      explanationBox.classList.remove('shake');
+      void explanationBox.offsetWidth;
+      explanationBox.classList.add('answer-popup');
+      
+      document.getElementById('read-btn').style.display = 'none';
+    }
+
+    function nextQuestion() {
+      currentQuestion++;
+      if (currentQuestion < quizData.length) {
+        showQuestion();
+      } else {
+        showResults();
+      }
+    }
+
+    function showResults() {
+      document.getElementById('quiz-screen').classList.add('hidden');
+      document.getElementById('results-screen').classList.remove('hidden');
+      document.getElementById('retake-button-container').classList.remove('hidden');
+
+      const percentage = Math.round((score / 20) * 100);
+      document.getElementById('score-value').textContent = score;
+      document.getElementById('score-percentage').textContent = percentage + '%';
+
+      let message = '';
+      if (percentage === 100) {
+        message = '🌟 Superlative acuity: Demonstrating consummate linguistic erudition and intellectual sophistication!';
+      } else if (percentage >= 80) {
+        message = '🏆 Outstanding perspicacity: Exhibiting exceptional comprehension of nuanced terminological distinctions!';
+      } else if (percentage >= 60) {
+        message = '👍 Commendable proficiency: Manifesting solid grasp of advanced lexicon and conceptual frameworks!';
+      } else if (percentage >= 40) {
+        message = '📖 Moderate competence: Demonstrating foundational understanding warranting further refinement!';
+      } else {
+        message = '📚 Nascent comprehension: Recommending intensive engagement with sophisticated academic discourse!';
+      }
+      document.getElementById('score-message').textContent = message;
+
+      const categoryScoresDiv = document.getElementById('category-scores');
+      categoryScoresDiv.innerHTML = '';
+      Object.keys(categoryScores).forEach(cat => {
+        const score_val = categoryScores[cat];
+        const total = categoryCounts[cat];
+        const percent = total > 0 ? Math.round((score_val / total) * 100) : 0;
+        const div = document.createElement('div');
+        div.className = 'rounded-lg p-4' + (percent === 100 ? ' border-2 border-green-500' : ' border border-purple-400');
+        div.style.background = 'rgba(255,255,255,0.05)';
+        div.innerHTML = `
+          <p class="text-black font-semibold text-sm">${cat}</p>
+          <p class="text-black text-2xl font-bold">${score_val}/${total}</p>
+          <p class="text-black text-xs mt-1">${percent}%</p>
+        `;
+        categoryScoresDiv.appendChild(div);
+      });
+
+      const resultsList = document.getElementById('results-list');
+      resultsList.innerHTML = '';
+      results.forEach((result, index) => {
+        const quizQuestion = quizData[index];
+        const div = document.createElement('div');
+        div.className = 'p-4 rounded-lg border-l-4 ' + (result.isCorrect ? 'border-green-500 bg-green-500 bg-opacity-10' : 'border-red-500 bg-red-500 bg-opacity-10');
+        
+        let choicesHtml = '<div class="mt-3 space-y-2">';
+        quizQuestion.options.forEach(option => {
+          const isUserAnswer = option.text === result.userAnswer;
+          const isCorrect = option.text === result.correctAnswer;
+          let choiceClass = 'text-black text-sm p-2 rounded';
+          let icon = '';
+          
+          if (isCorrect) {
+            choiceClass += ' bg-green-500 bg-opacity-20 font-semibold';
+            icon = '✅';
+          } else if (isUserAnswer && !isCorrect) {
+            choiceClass += ' bg-red-500 bg-opacity-20 font-semibold';
+            icon = '❌';
+          } else {
+            choiceClass += ' bg-gray-500 bg-opacity-10';
+          }
+          
+          choicesHtml += `<p class="${choiceClass}">${icon} ${option.text}</p>`;
+        });
+        choicesHtml += '</div>';
+        
+        div.innerHTML = `
+          <p class="text-black font-semibold text-sm mb-2">${index + 1}. ${result.question.substring(0, 80)}...</p>
+          <p class="text-black text-xs mb-2">Category: ${result.category}</p>
+          ${choicesHtml}
+          <p class="text-black text-xs mt-3">Your response: <span class="font-semibold">${result.userAnswer}</span> ${result.isCorrect ? '✅' : '❌'}</p>
+          ${!result.isCorrect ? `<p class="text-black text-xs">Accurate response: <span class="font-semibold text-green-600">${result.correctAnswer}</span></p>` : ''}
+        `;
+        resultsList.appendChild(div);
+      });
+
+      createConfetti();
+    }
+
+    function createConfetti() {
+      const container = document.getElementById('app-wrapper');
+      const emojis = ['🎉', '✨', '⭐', '🎊', '💡', '🚀', '🏆'];
+      
+      for (let i = 0; i < 40; i++) {
+        const confetti = document.createElement('div');
+        confetti.className = 'confetti-piece';
+        confetti.textContent = emojis[Math.floor(Math.random() * emojis.length)];
+        confetti.style.left = Math.random() * 100 + '%';
+        confetti.style.top = '-50px';
+        confetti.style.fontSize = (Math.random() * 20 + 20) + 'px';
+        confetti.style.opacity = '1';
+        confetti.style.animationDuration = (Math.random() * 1 + 1.5) + 's';
+        confetti.style.animationDelay = Math.random() * 0.2 + 's';
+        container.appendChild(confetti);
+        
+        setTimeout(() => confetti.remove(), 3000);
+      }
+    }
+
+    function restartQuiz() {
+      document.getElementById('results-screen').classList.add('hidden');
+      document.getElementById('start-screen').classList.remove('hidden');
+    }
+
+    async function onConfigChange(config) {
+      const c = { ...defaultConfig, ...config };
+      
+      document.getElementById('main-title').textContent = c.quiz_title;
+      document.getElementById('start-btn').textContent = c.start_button_text;
+      document.getElementById('results-subtitle').textContent = c.results_subtitle;
+      
+      document.getElementById('app-wrapper').style.background = c.background_color;
+      
+      document.querySelectorAll('.text-black').forEach(el => {
+        el.style.color = c.text_color;
+      });
+      
+      document.getElementById('start-btn').style.background = `linear-gradient(135deg, ${c.primary_action_color}, ${adjustColor(c.primary_action_color, 15)})`;
+      
+      document.documentElement.style.fontFamily = `${c.font_family}, sans-serif`;
+    }
+
+    function adjustColor(hex, percent) {
+      const num = parseInt(hex.replace('#', ''), 16);
+      const r = Math.min(255, ((num >> 16) + percent));
+      const g = Math.min(255, (((num >> 8) & 0x00FF) + percent));
+      const b = Math.min(255, ((num & 0x0000FF) + percent));
+      return '#' + (0x1000000 + r * 0x10000 + g * 0x100 + b).toString(16).slice(1);
+    }
+
+    function mapToCapabilities(config) {
+      const c = { ...defaultConfig, ...config };
+      return {
+        recolorables: [
+          {
+            get: () => c.background_color,
+            set: (value) => { c.background_color = value; if (window.elementSdk) window.elementSdk.setConfig({ background_color: value }); }
+          },
+          {
+            get: () => c.text_color,
+            set: (value) => { c.text_color = value; if (window.elementSdk) window.elementSdk.setConfig({ text_color: value }); }
+          },
+          {
+            get: () => c.primary_action_color,
+            set: (value) => { c.primary_action_color = value; if (window.elementSdk) window.elementSdk.setConfig({ primary_action_color: value }); }
+          },
+          {
+            get: () => c.secondary_action_color,
+            set: (value) => { c.secondary_action_color = value; if (window.elementSdk) window.elementSdk.setConfig({ secondary_action_color: value }); }
+          }
+        ],
+        borderables: [],
+        fontEditable: {
+          get: () => c.font_family,
+          set: (value) => { c.font_family = value; if (window.elementSdk) window.elementSdk.setConfig({ font_family: value }); }
+        },
+        fontSizeable: {
+          get: () => c.font_size,
+          set: (value) => { c.font_size = value; if (window.elementSdk) window.elementSdk.setConfig({ font_size: value }); }
+        }
+      };
+    }
+
+    function mapToEditPanelValues(config) {
+      const c = { ...defaultConfig, ...config };
+      return new Map([
+        ["quiz_title", c.quiz_title],
+        ["start_button_text", c.start_button_text],
+        ["results_subtitle", c.results_subtitle]
+      ]);
+    }
+
+    if (window.elementSdk) {
+      window.elementSdk.init({
+        defaultConfig,
+        onConfigChange,
+        mapToCapabilities,
+        mapToEditPanelValues
+      });
+    }
+  </script>
+ <script>(function(){function c(){var b=a.contentDocument||a.contentWindow.document;if(b){var d=b.createElement('script');d.innerHTML="window.__CF$cv$params={r:'9c7eeb0521b77329',t:'MTc3MDA5MDE0My4wMDAwMDA='};var a=document.createElement('script');a.nonce='';a.src='/cdn-cgi/challenge-platform/scripts/jsd/main.js';document.getElementsByTagName('head')[0].appendChild(a);";b.getElementsByTagName('head')[0].appendChild(d)}}if(document.body){var a=document.createElement('iframe');a.height=1;a.width=1;a.style.position='absolute';a.style.top=0;a.style.left=0;a.style.border='none';a.style.visibility='hidden';document.body.appendChild(a);if('loading'!==document.readyState)c();else if(window.addEventListener)document.addEventListener('DOMContentLoaded',c);else{var e=document.onreadystatechange||function(){};document.onreadystatechange=function(b){e(b);'loading'!==document.readyState&&(document.onreadystatechange=e,c())}}}})();</script></body>
+</html>
